@@ -20,7 +20,9 @@
 *![Результат виконання скрипта](https://www.shutterstock.com/image-vector/seamless-pattern-cute-summer-capybaras-600nw-2631984135.jpg?text=Вставте+скріншот+терміналу+тут)*
 
 
-*![Дані в таблиці](https://www.shutterstock.com/image-vector/cute-animal-panda-characters-set-600nw-2452710799.jpg?text=Вставте+скріншот+pgAdmin+тут)*
+<img width="1858" height="667" alt="image" src="https://github.com/user-attachments/assets/987543d5-de56-463f-b775-d643d96bf9dc" />
+
+
 
 
 ### 2. Контрольне запитання
