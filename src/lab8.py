@@ -1,115 +1,83 @@
-import psycopg2
-import os
+import mysql.connector
+from mysql.connector import Error
 
-# --- DANGER ZONE ---
-# PASSWORD stored in plain text. This is not secure.
-# In a real-world application, use environment variables
-# or a secret management service.
-# For this lab, you can set an environment variable:
-# export DB_PASSWORD='your_password'
-# --- /DANGER ZONE ---
+try:
+    #підключення до сервера MySQL
+    connection = mysql.connector.connect(
+        host='localhost',
+        user='root',
+        port=1234,
+        password='0993337631Aleksa-'
+    )
 
-# --- STUDENT TODO: ---
-# 1. Replace 'your_database' with the name of your database
-# 2. Replace 'your_user' with your database username (often 'postgres')
-# 3. Replace 'your_password' with your database password
-# 4. Replace 'your_host' with your database host (usually 'localhost')
-# 5. Replace 'your_port' with your database port (usually '5432' for PostgreSQL)
+    if connection.is_connected():
+        cursor = connection.cursor()
 
-DB_NAME = "your_database"
-DB_USER = "postgres"
-DB_PASS = os.getenv("DB_PASSWORD", "your_password") # Fallback to insecure default
-DB_HOST = "localhost"
-DB_PORT = "5432"
+        #бази даних «Магазин»
+        cursor.execute("CREATE DATABASE IF NOT EXISTS Магазин;")
+        cursor.execute("USE Магазин;")
+        print("Базу даних «Магазин» успішно створено та обрано.")
 
-def main():
-    """
-    Main function to connect to the database and perform operations.
-    Students should modify this function to complete their lab assignments.
-    """
-    conn = None  # Initialize conn to None
-    try:
-        # Establish the connection
-        conn = psycopg2.connect(
-            database=DB_NAME,
-            user=DB_USER,
-            password=DB_PASS,
-            host=DB_HOST,
-            port=DB_PORT
-        )
-        print("Database connected successfully")
-        cur = conn.cursor()
+        #таблиця «Товари»
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS Товари (
+                id INT AUTO_INCREMENT PRIMARY KEY,
+                назва VARCHAR(255) NOT NULL,
+                ціна DECIMAL(10, 2) NOT NULL,
+                кількість INT NOT NULL
+            );
+        """)
+        print("Таблицю «Товари» створено.")
 
-        # --- STUDENT TODO: Task 3 - Create Table ---
-        # Write your SQL query to create a table.
-        # Example for 'students' table:
-        # create_table_query = """
-        # CREATE TABLE IF NOT EXISTS students (
-        #     id SERIAL PRIMARY KEY,
-        #     name VARCHAR(100) NOT NULL,
-        #     age INTEGER,
-        #     admission_date DATE
-        # );
-        # """
-        # cur.execute(create_table_query)
-        # conn.commit()
-        # print("Table 'students' created successfully.")
 
-        # --- STUDENT TODO: Task 4 - Insert Data ---
-        # Write your SQL query to insert data.
-        # Use executemany for multiple inserts.
-        # Example for 'students' table:
-        # insert_query = "INSERT INTO students (name, age, admission_date) VALUES (%s, %s, %s);"
-        # student_data = [
-        #     ('John Doe', 20, '2023-09-01'),
-        #     ('Jane Smith', 22, '2022-09-01'),
-        #     ('Alice Johnson', 19, '2024-09-01'),
-        #     ('Bob Williams', 21, '2023-09-01'),
-        #     ('Anna Brown', 20, '2022-09-01')
-        # ]
-        # cur.executemany(insert_query, student_data)
-        # conn.commit()
-        # print(f"{cur.rowcount} records inserted successfully.")
+        insert_query = """
+            INSERT INTO Товари (назва, ціна, кількість) 
+            VALUES (%s, %s, %s);
+        """
+        records = [
+            ("Смартфон", 12500.50, 15),
+            ("Ноутбук", 28000.00, 7),
+            ("Навушники", 1800.25, 30),
+            ("Мишка", 750.00, 50),
+            ("Клавіатура", 1400.00, 25)
 
-        # --- STUDENT TODO: Task 5 - Update Data ---
-        # Write your SQL query to update data.
-        # Example for 'students' table:
-        # update_query = "UPDATE students SET age = 21 WHERE name = 'John Doe';"
-        # cur.execute(update_query)
-        # conn.commit()
-        # print(f"{cur.rowcount} record(s) updated successfully.")
+        ]
+        cursor.executemany(insert_query, records)
+        connection.commit()
+        print(f"Успішно додано рядків: {cursor.rowcount}")
 
-        # --- STUDENT TODO: Task 6 - Delete Data ---
-        # Write your SQL query to delete data.
-        # Example for 'students' table:
-        # delete_query = "DELETE FROM students WHERE name = 'Jane Smith';"
-        # cur.execute(delete_query)
-        # conn.commit()
-        # print(f"{cur.rowcount} record(s) deleted successfully.")
 
-        # --- STUDENT TODO: Task 7 - Select Data ---
-        # Write your SQL query to select data.
-        # Fetch and print the results.
-        # Example for 'students' table:
-        # select_query = "SELECT * FROM students ORDER BY age DESC;"
-        # cur.execute(select_query)
-        # records = cur.fetchall()
-        # print("\n--- Student Records ---")
-        # for record in records:
-        #     print(f"ID: {record[0]}, Name: {record[1]}, Age: {record[2]}, Admission Date: {record[3]}")
-        # print("-----------------------\n")
+        #оновлення даних
+        update_query = "UPDATE Товари SET ціна = 800.00 WHERE назва = 'Мишка';"
+        cursor.execute(update_query)
+        connection.commit()
+        print("Дані успішно оновлено.")
 
-        # Remember to close the cursor
-        cur.close()
+        #видалення даних
+        delete_query = "DELETE FROM Товари ORDER BY кількість ASC LIMIT 1;"
+        cursor.execute(delete_query)
+        connection.commit()
+        print("Запис із найменшою кількістю видалено.")
 
-    except (Exception, psycopg2.DatabaseError) as error:
-        print(f"Error while connecting to PostgreSQL: {error}")
+        #вибірка даних з умовою та сортуванням
+        print("\n--- Виведення всіх товарів, відсортованих за ціною (від найдорожчих) ---")
+        cursor.execute("SELECT * FROM Товари ORDER BY ціна DESC;")
+        for row in cursor.fetchall():
+            print(row)
 
-    finally:
-        # Ensure the connection is closed
-        if conn is not None:
-            conn.close()
-            print("Database connection closed.")
+        print("\n--- Виведення товарів, ціна яких більша за 2000 грн ---")
+        cursor.execute("SELECT назва, ціна FROM Товари WHERE ціна > 2000;")
+        for row in cursor.fetchall():
+            print(row)
 
-if __name__ == "__main__":
-    main()
+except Error as e:
+    print("Помилка під час роботи з MySQL:", e)
+
+finally:
+    if 'connection' in locals() and connection.is_connected():
+        cursor.close()
+        connection.close()
+        print("\nЗ'єднання з базою даних закрито.")
+
+        #USE магазин;
+        #TRUNCATE TABLE товари;
